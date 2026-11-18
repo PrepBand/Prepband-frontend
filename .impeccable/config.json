@@ -1,0 +1,23 @@
+{
+  "detector": {
+    "ignoreRules": [],
+    "ignoreFiles": [],
+    "ignoreValues": [
+      {
+        "rule": "overused-font",
+        "value": "inter",
+        "createdAt": "2026-11-08T17:58:25.727Z",
+        "reason": "pre-existing sitewide typeface set in :root before this session; not introduced by the Practice/Mock tests/Certificates/History/Progress pages built today, and changing it would be an unrelated rebrand decision"
+      },
+      {
+        "rule": "gradient-text",
+        "value": "*",
+        "files": [
+          "src/styles.css"
+        ],
+        "createdAt": "2026-11-18T13:20:34.350Z",
+        "reason": "band9prep reference doc explicitly specifies gradient text (from-#E71D2A via-#FF2B2B to-#FF6A6A) for 2-3 word headline emphasis as a Do; brief-pinned, scoped to the hero h1 emphasis span only"
+      }
+    ]
+  }
+}
