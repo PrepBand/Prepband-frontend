@@ -3399,6 +3399,7 @@ button {
 
 .mock-grid {
   grid-template-columns: repeat(4, 1fr);
+  margin-top: 28px;
 }
 
 .mock-skill-card {
@@ -3784,4 +3785,51 @@ button {
 
 .dashboard-shell[data-theme="dark"] .modal-card {
   background: #1c1c1c;
+}
+
+/* Legal + contact pages, signed-in dashboard shell */
+
+.dashboard-shell[data-theme="dark"] .dashboard-main h1 {
+  color: #f5f5f5;
+}
+
+.dashboard-shell[data-theme="dark"] .dashboard-main > p {
+  color: #a6a6a6;
+}
+
+.dashboard-shell[data-theme="dark"] .profile-tabs {
+  border-bottom-color: rgba(255, 255, 255, 0.08);
+}
+
+.dashboard-shell[data-theme="dark"] .profile-tab {
+  color: #8a8a8a;
+}
+
+.dashboard-shell[data-theme="dark"] .profile-tab-active {
+  color: #c2514f;
+}
+
+.dashboard-shell[data-theme="dark"] .legal-content h2,
+.dashboard-shell[data-theme="dark"] .contact-row strong {
+  color: #f5f5f5;
+}
+
+.dashboard-shell[data-theme="dark"] .legal-content p,
+.dashboard-shell[data-theme="dark"] .contact-row p {
+  color: #a6a6a6;
+}
+
+.dashboard-shell[data-theme="dark"] .legal-content p a,
+.dashboard-shell[data-theme="dark"] .contact-row p a {
+  color: #c2514f;
+}
+
+.dashboard-shell[data-theme="dark"] .contact-note {
+  color: #8a8a8a;
+}
+
+.dashboard-shell[data-theme="dark"] .legal-disclaimer {
+  color: #e0b563;
+  background: rgba(224, 181, 99, 0.12);
+  border-color: rgba(224, 181, 99, 0.25);
 }

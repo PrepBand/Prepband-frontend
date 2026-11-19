@@ -120,13 +120,20 @@ export function LegalPage() {
 
   if (session) {
     return (
-      <div className="dashboard-shell" data-theme={theme}>
-        <DashboardSidebar />
-        <div className="dashboard-content">
-          <DashboardTopbar label="Legal" />
-          <main className="dashboard-main dashboard-main-shell">{content}</main>
+      <>
+        <a className="skip-link" href="#main">
+          Skip to content
+        </a>
+        <div className="dashboard-shell" data-theme={theme}>
+          <DashboardSidebar />
+          <div className="dashboard-content">
+            <DashboardTopbar label="Legal" />
+            <main id="main" className="dashboard-main dashboard-main-shell">
+              {content}
+            </main>
+          </div>
         </div>
-      </div>
+      </>
     );
   }
 
