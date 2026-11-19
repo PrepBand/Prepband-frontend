@@ -132,7 +132,7 @@ button {
   display: inline-flex;
   align-items: center;
   gap: 10px;
-  color: var(--ink);
+  color: var(--accent-dark);
   font-family: var(--display-font);
   font-size: 19px;
   font-weight: 700;
@@ -146,7 +146,7 @@ button {
   place-items: center;
   border-radius: 10px;
   color: white;
-  background: var(--ink-solid);
+  background: var(--accent);
 }
 
 .main-nav {
@@ -286,25 +286,25 @@ button {
 
 .button-primary {
   color: white;
-  background: var(--ink-solid);
+  background: var(--accent);
 }
 
 .button-primary:hover {
   transform: translateY(-1px);
-  background: #000000;
+  background: var(--accent-dark);
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
 }
 
 .button-secondary {
   gap: 10px;
-  border-color: var(--line);
-  color: var(--ink);
+  border-color: var(--accent);
+  color: var(--accent-dark);
   background: var(--surface);
 }
 
 .button-secondary:hover {
-  border-color: #c7c7c7;
-  background: #ffffff;
+  border-color: var(--accent-dark);
+  background: var(--accent-wash);
 }
 
 .button-sm {
@@ -2145,8 +2145,8 @@ button {
   height: 36px;
   place-items: center;
   border-radius: 50%;
-  color: var(--accent-dark);
-  background: var(--accent-wash);
+  color: #ffffff;
+  background: var(--accent);
   font-size: 13px;
   font-weight: 700;
   overflow: hidden;
@@ -2720,6 +2720,7 @@ button {
 .sidebar-link {
   display: flex;
   align-items: center;
+  width: 100%;
   gap: 11px;
   padding: 10px 12px;
   border: none;
@@ -2730,6 +2731,7 @@ button {
   font-weight: 600;
   text-align: left;
   cursor: pointer;
+  box-sizing: border-box;
 }
 
 .sidebar-link:hover {
@@ -2743,12 +2745,17 @@ button {
 }
 
 .sidebar-link-active {
-  color: var(--accent-dark);
-  background: var(--accent-wash);
+  color: #ffffff;
+  background: var(--accent);
 }
 
 .sidebar-link-active svg {
-  color: var(--accent-dark);
+  color: #ffffff;
+}
+
+.sidebar-link-active:hover {
+  color: #ffffff;
+  background: var(--accent-dark);
 }
 
 .dashboard-content {
@@ -2788,8 +2795,8 @@ button {
 .track-pill {
   padding: 6px 12px;
   border-radius: 999px;
-  color: var(--accent-dark);
-  background: var(--accent-wash);
+  color: #ffffff;
+  background: var(--accent);
   font-size: 11px;
   font-weight: 650;
   white-space: nowrap;
@@ -3155,14 +3162,21 @@ button {
   color: #f5f5f5;
 }
 
-.dashboard-shell[data-theme="dark"] .sidebar-link-active {
-  color: #c2514f;
-  background: rgba(194, 81, 79, 0.14);
-}
-
-.dashboard-shell[data-theme="dark"] .sidebar-link-active svg,
 .dashboard-shell[data-theme="dark"] .sidebar-link svg {
   color: #8a8a8a;
+}
+
+.dashboard-shell[data-theme="dark"] .sidebar-link-active {
+  color: #ffffff;
+  background: var(--accent);
+}
+
+.dashboard-shell[data-theme="dark"] .sidebar-link-active svg {
+  color: #ffffff;
+}
+
+.dashboard-shell[data-theme="dark"] .sidebar-link-active:hover {
+  background: var(--accent-dark);
 }
 
 .dashboard-shell[data-theme="dark"] .icon-button {
@@ -3174,15 +3188,19 @@ button {
 }
 
 .dashboard-shell[data-theme="dark"] .dashboard-avatar {
-  color: #121212;
-  background: #c2514f;
+  color: #ffffff;
+  background: var(--accent);
 }
 
-.dashboard-shell[data-theme="dark"] .target-pill,
+.dashboard-shell[data-theme="dark"] .target-pill {
+  color: #f5f5f5;
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.12);
+}
+
 .dashboard-shell[data-theme="dark"] .track-pill {
-  color: #c2514f;
-  background: rgba(194, 81, 79, 0.14);
-  border-color: rgba(194, 81, 79, 0.2);
+  color: #ffffff;
+  background: var(--accent);
 }
 
 .dashboard-shell[data-theme="dark"] .target-gap-track {
@@ -3431,8 +3449,8 @@ button {
   margin-bottom: 20px;
   place-items: center;
   border-radius: 50%;
-  color: var(--accent);
-  background: var(--accent-wash);
+  color: #ffffff;
+  background: var(--accent);
 }
 
 .stage-card h2 {
@@ -3477,8 +3495,8 @@ button {
 }
 
 .mock-step-active {
-  color: var(--accent-dark);
-  background: var(--accent-wash);
+  color: #ffffff;
+  background: var(--accent);
 }
 
 .mock-card-badge {
@@ -3492,8 +3510,8 @@ button {
 }
 
 .mock-card-badge.is-current {
-  color: var(--accent-dark);
-  background: var(--accent-wash);
+  color: #ffffff;
+  background: var(--accent);
 }
 
 .mock-card-badge.is-upcoming {
@@ -3659,8 +3677,8 @@ button {
   margin-bottom: 16px;
   place-items: center;
   border-radius: 50%;
-  color: var(--accent);
-  background: var(--accent-wash);
+  color: #ffffff;
+  background: var(--accent);
 }
 
 .modal-card h2 {
@@ -3724,8 +3742,8 @@ button {
 
 .dashboard-shell[data-theme="dark"] .segmented-tab-active,
 .dashboard-shell[data-theme="dark"] .segmented-tab-active:hover {
-  color: #121212;
-  background: #c2514f;
+  color: #ffffff;
+  background: var(--accent);
 }
 
 .dashboard-shell[data-theme="dark"] .select-field select {
@@ -3766,8 +3784,8 @@ button {
 
 .dashboard-shell[data-theme="dark"] .stage-icon,
 .dashboard-shell[data-theme="dark"] .modal-icon {
-  color: #c2514f;
-  background: rgba(194, 81, 79, 0.14);
+  color: #ffffff;
+  background: var(--accent);
 }
 
 .dashboard-shell[data-theme="dark"] .mock-step {
@@ -3775,8 +3793,12 @@ button {
 }
 
 .dashboard-shell[data-theme="dark"] .mock-step-active {
-  color: #c2514f;
-  background: rgba(194, 81, 79, 0.14);
+  color: #ffffff;
+  background: var(--accent);
+}
+
+.dashboard-shell[data-theme="dark"] .mock-card-badge.is-current {
+  background: var(--accent);
 }
 
 .dashboard-shell[data-theme="dark"] .next-step-row {
