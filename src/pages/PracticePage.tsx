@@ -108,11 +108,6 @@ export function PracticePage() {
               );
             })}
           </div>
-
-          <p className="info-banner">
-            Focused practice sets are shorter than a full IELTS examination. Listening and Reading receive objective
-            scores; Writing and Speaking receive diagnostics and self-review.
-          </p>
         </main>
       </div>
 

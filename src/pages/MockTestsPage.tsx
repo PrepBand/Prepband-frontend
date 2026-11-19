@@ -1,18 +1,9 @@
 import { useState } from "react";
-import {
-  ArrowRight,
-  BookOpen,
-  BookOpenText,
-  Headphones,
-  Mic2,
-  PenLine,
-} from "lucide-react";
 import { ComingSoonModal } from "../components/dashboard/ComingSoonModal";
 import { DashboardSidebar } from "../components/dashboard/DashboardSidebar";
 import { DashboardTopbar } from "../components/dashboard/DashboardTopbar";
 import { SKILL_META, SKILL_ORDER, type SkillKey } from "../data/practice";
 import { useDashboardTheme } from "../lib/useDashboardTheme";
-import { useProfile } from "../lib/useProfile";
 
 const STEP_DESCRIPTIONS: Record<SkillKey, string> = {
   listening: "An original audio announcement and five questions.",
@@ -23,11 +14,9 @@ const STEP_DESCRIPTIONS: Record<SkillKey, string> = {
 
 export function MockTestsPage() {
   const { theme } = useDashboardTheme();
-  const { studyGoal } = useProfile();
   const [activeStep, setActiveStep] = useState<SkillKey>("listening");
   const [modalOpen, setModalOpen] = useState(false);
 
-  const trackLabel = studyGoal?.ielts_type === "general" ? "General" : "Academic";
   const activeMeta = SKILL_META[activeStep];
 
   return (
@@ -57,42 +46,6 @@ export function MockTestsPage() {
             ))}
           </div>
 
-          <div className="dashboard-next-step">
-            <div className="dashboard-next-step-copy">
-              <h2>Your next chapter deserves a rehearsal.</h2>
-              <p>
-                {trackLabel} track · guided mock preview. Move through Listening, Reading, Writing and Speaking. Your
-                place is saved between sections.
-              </p>
-              <button type="button" className="button button-primary dashboard-hero-cta" onClick={() => setModalOpen(true)}>
-                Continue with {activeMeta.label} <ArrowRight size={16} aria-hidden="true" />
-              </button>
-            </div>
-
-            <div className="dashboard-orb-wrap" aria-hidden="true">
-              <div className="dashboard-orb">
-                <BookOpen size={30} strokeWidth={1.7} />
-              </div>
-              <span className="dashboard-orb-chip chip-orb-headphones">
-                <Headphones size={16} />
-              </span>
-              <span className="dashboard-orb-chip chip-orb-reading">
-                <BookOpenText size={16} />
-              </span>
-              <span className="dashboard-orb-chip chip-orb-pen">
-                <PenLine size={16} />
-              </span>
-              <span className="dashboard-orb-chip chip-orb-mic">
-                <Mic2 size={16} />
-              </span>
-            </div>
-          </div>
-
-          <p className="info-banner">
-            This design preview uses short original practice sets rather than a complete timed IELTS exam. No overall
-            IELTS band is calculated. A full-length exam requires the production question bank described in your scope.
-          </p>
-
           <div className="practice-grid mock-grid">
             {SKILL_ORDER.map((skill, index) => {
               const meta = SKILL_META[skill];
@@ -104,11 +57,15 @@ export function MockTestsPage() {
                   className="dashboard-card practice-card mock-skill-card"
                   role="button"
                   tabIndex={0}
-                  onClick={() => setActiveStep(skill)}
+                  onClick={() => {
+                    setActiveStep(skill);
+                    setModalOpen(true);
+                  }}
                   onKeyDown={(event) => {
                     if (event.key === "Enter" || event.key === " ") {
                       event.preventDefault();
                       setActiveStep(skill);
+                      setModalOpen(true);
                     }
                   }}
                 >
