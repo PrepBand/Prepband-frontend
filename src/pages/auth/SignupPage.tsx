@@ -2,16 +2,18 @@ import { useState } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { ArrowRight, Loader2 } from "lucide-react";
 import { useForm } from "react-hook-form";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, Navigate, useNavigate } from "react-router-dom";
 import { AuthLayout } from "../../components/auth/AuthLayout";
 import { PasswordField } from "../../components/auth/PasswordField";
 import { TextField } from "../../components/auth/TextField";
+import { useAuth } from "../../lib/AuthProvider";
 import { supabase } from "../../lib/supabaseClient";
 import { signupSchema, type SignupFormValues } from "../../lib/validation";
 
 export function SignupPage() {
   const navigate = useNavigate();
   const [serverError, setServerError] = useState("");
+  const { session, loading: authLoading } = useAuth();
   const {
     register,
     handleSubmit,
@@ -42,6 +44,12 @@ export function SignupPage() {
     }
     navigate("/auth/login?signedup=1", { replace: true });
   };
+
+  // Already logged in - don't offer to create a second account over an
+  // active session; send them back into the app instead.
+  if (!authLoading && session) {
+    return <Navigate to="/app/dashboard" replace />;
+  }
 
   return (
     <AuthLayout

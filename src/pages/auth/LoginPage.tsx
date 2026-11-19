@@ -2,10 +2,11 @@ import { useState } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { ArrowRight, CheckCircle2, Loader2 } from "lucide-react";
 import { useForm } from "react-hook-form";
-import { Link, useNavigate, useSearchParams } from "react-router-dom";
+import { Link, Navigate, useNavigate, useSearchParams } from "react-router-dom";
 import { AuthLayout } from "../../components/auth/AuthLayout";
 import { PasswordField } from "../../components/auth/PasswordField";
 import { TextField } from "../../components/auth/TextField";
+import { useAuth } from "../../lib/AuthProvider";
 import { supabase } from "../../lib/supabaseClient";
 import { loginSchema, type LoginFormValues } from "../../lib/validation";
 
@@ -13,6 +14,7 @@ export function LoginPage() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const [serverError, setServerError] = useState("");
+  const { session, loading: authLoading } = useAuth();
   const {
     register,
     handleSubmit,
@@ -44,6 +46,14 @@ export function LoginPage() {
     }
     navigate("/app/dashboard", { replace: true });
   };
+
+  // Already logged in (e.g. navigated here via the header's "Log in" link
+  // after clicking the logo away from the dashboard) - bounce straight
+  // back in instead of making them re-submit the form against a session
+  // that's still perfectly valid.
+  if (!authLoading && session) {
+    return <Navigate to="/app/dashboard" replace />;
+  }
 
   return (
     <AuthLayout

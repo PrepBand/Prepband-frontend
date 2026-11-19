@@ -1,20 +1,17 @@
 import type { LucideIcon } from "lucide-react";
-import { Award, BarChart3, BookOpen, FileText, History, LayoutGrid, LogOut, Mail, Scale } from "lucide-react";
+import { Award, BarChart3, BookOpen, FileText, LayoutGrid, Library, LogOut, Mail, Scale } from "lucide-react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { Logo } from "../layout/Logo";
 import { supabase } from "../../lib/supabaseClient";
 
 type NavItem = { label: string; icon: LucideIcon; to: string };
 
-const primaryNav: NavItem[] = [
+const mainNav: NavItem[] = [
   { label: "Overview", icon: LayoutGrid, to: "/app/dashboard" },
   { label: "Practice", icon: BookOpen, to: "/app/practice" },
   { label: "Mock tests", icon: FileText, to: "/app/mock-tests" },
-];
-
-const learningNav: NavItem[] = [
   { label: "My progress", icon: BarChart3, to: "/app/progress" },
-  { label: "Practice history", icon: History, to: "/app/practice-history" },
+  { label: "Resources", icon: Library, to: "/app/resources" },
   { label: "Certificates", icon: Award, to: "/app/certificates" },
 ];
 
@@ -43,9 +40,7 @@ export function DashboardSidebar() {
         <Logo />
       </div>
       <nav className="app-sidebar-nav">
-        {primaryNav.map(renderItem)}
-        <span className="app-nav-group-label">Your learning</span>
-        {learningNav.map(renderItem)}
+        {mainNav.map(renderItem)}
         <Link
           to="/legal"
           className={`sidebar-link${location.pathname === "/legal" ? " sidebar-link-active" : ""}`}

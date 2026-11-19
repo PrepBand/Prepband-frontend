@@ -10,6 +10,7 @@ import { PracticeHistoryPage } from "./pages/PracticeHistoryPage";
 import { MockTestsPage } from "./pages/MockTestsPage";
 import { CertificatesPage } from "./pages/CertificatesPage";
 import { ProgressPage } from "./pages/ProgressPage";
+import { ResourcesPage } from "./pages/ResourcesPage";
 import { LegalPage } from "./pages/LegalPage";
 import { ContactPage } from "./pages/ContactPage";
 import { NotFoundPage } from "./pages/NotFoundPage";
@@ -104,6 +105,16 @@ export default function App() {
           <ProtectedRoute>
             <RequireOnboarding>
               <ProgressPage />
+            </RequireOnboarding>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/app/resources"
+        element={
+          <ProtectedRoute>
+            <RequireOnboarding>
+              <ResourcesPage />
             </RequireOnboarding>
           </ProtectedRoute>
         }

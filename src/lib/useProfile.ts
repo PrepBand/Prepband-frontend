@@ -99,33 +99,6 @@ export function useProfile() {
     [session],
   );
 
-  const uploadAvatar = useCallback(
-    async (file: File) => {
-      if (!session) return { error: "Not signed in." };
-      const formData = new FormData();
-      formData.append("file", file);
-      const { data, error: invokeError } = await supabase.functions.invoke("upload-avatar", {
-        body: formData,
-      });
-      if (invokeError) {
-        const context = (invokeError as { context?: Response }).context;
-        if (context) {
-          try {
-            const body = await context.json();
-            return { error: body.error ?? invokeError.message };
-          } catch {
-            // response wasn't JSON; fall back to the raw error message below
-          }
-        }
-        return { error: invokeError.message };
-      }
-      if (data?.error) return { error: data.error as string };
-      if (data?.profile) setProfile(data.profile as Profile);
-      return { error: null };
-    },
-    [session],
-  );
-
   const completeOnboarding = useCallback(async () => {
     if (!session) return { error: "Not signed in." };
     const { data, error: updateError } = await supabase
@@ -150,7 +123,6 @@ export function useProfile() {
     updateAbout,
     updateStudyGoal,
     updateTargetScores,
-    uploadAvatar,
     completeOnboarding,
   };
 }
