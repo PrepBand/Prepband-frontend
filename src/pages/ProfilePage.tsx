@@ -1,12 +1,10 @@
-import { useEffect, useRef, useState } from "react";
-import type { ChangeEvent } from "react";
-import { Camera, CheckCircle2, Loader2, LogOut, TriangleAlert } from "lucide-react";
+import { useEffect, useState } from "react";
+import { CheckCircle2, Loader2, TriangleAlert } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { AboutYouForm } from "../components/profile/AboutYouForm";
 import { StudyGoalForm } from "../components/profile/StudyGoalForm";
 import { TargetScoresForm } from "../components/profile/TargetScoresForm";
 import { Logo } from "../components/layout/Logo";
-import { supabase } from "../lib/supabaseClient";
 import { useProfile } from "../lib/useProfile";
 
 type Tab = "about" | "goal" | "scores";
@@ -19,24 +17,10 @@ const tabs: { id: Tab; label: string }[] = [
 
 export function ProfilePage() {
   const navigate = useNavigate();
-  const {
-    profile,
-    about,
-    studyGoal,
-    targetScores,
-    loading,
-    error,
-    refetch,
-    updateAbout,
-    updateStudyGoal,
-    updateTargetScores,
-    uploadAvatar,
-  } = useProfile();
+  const { profile, about, studyGoal, targetScores, loading, error, refetch, updateAbout, updateStudyGoal, updateTargetScores } =
+    useProfile();
   const [activeTab, setActiveTab] = useState<Tab>("about");
   const [savedMessage, setSavedMessage] = useState("");
-  const [avatarUploading, setAvatarUploading] = useState(false);
-  const [avatarError, setAvatarError] = useState("");
-  const avatarInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     if (!savedMessage) return;
@@ -44,49 +28,15 @@ export function ProfilePage() {
     return () => clearTimeout(timeout);
   }, [savedMessage]);
 
-  const handleLogout = async () => {
-    await supabase.auth.signOut();
-    navigate("/auth/login", { replace: true });
-  };
-
   const initials = profile?.avatar_initials || "?";
-
-  const handleAvatarChange = async (event: ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    event.target.value = "";
-    if (!file) return;
-
-    if (!["image/jpeg", "image/png", "image/webp"].includes(file.type)) {
-      setAvatarError("Please choose a JPEG, PNG or WebP image.");
-      return;
-    }
-    if (file.size > 5 * 1024 * 1024) {
-      setAvatarError("Image must be 5MB or smaller.");
-      return;
-    }
-
-    setAvatarError("");
-    setAvatarUploading(true);
-    const { error: uploadError } = await uploadAvatar(file);
-    setAvatarUploading(false);
-
-    if (uploadError) {
-      setAvatarError(uploadError);
-    } else {
-      setSavedMessage("Your photo has been updated.");
-    }
-  };
 
   return (
     <div className="dashboard-page">
       <header className="dashboard-header">
         <Logo />
         <div className="dashboard-header-actions">
-          <button className="button button-secondary" type="button" onClick={() => navigate("/app/dashboard")}>
+          <button className="button button-secondary button-sm" type="button" onClick={() => navigate("/app/dashboard")}>
             Back to dashboard
-          </button>
-          <button className="button button-secondary" onClick={handleLogout} type="button">
-            <LogOut size={16} aria-hidden="true" /> Log out
           </button>
         </div>
       </header>
@@ -112,45 +62,15 @@ export function ProfilePage() {
         {!loading && !error && (
           <>
             <div className="profile-heading-row">
-              <div className="profile-avatar-wrap">
-                <span className="dashboard-avatar profile-avatar-large" aria-hidden="true">
-                  {profile?.avatar_url ? <img src={profile.avatar_url} alt="" /> : initials}
-                </span>
-                <button
-                  type="button"
-                  className="profile-avatar-edit"
-                  onClick={() => avatarInputRef.current?.click()}
-                  disabled={avatarUploading}
-                  aria-label="Change profile photo"
-                >
-                  {avatarUploading ? (
-                    <Loader2 size={13} className="spin" aria-hidden="true" />
-                  ) : (
-                    <Camera size={13} aria-hidden="true" />
-                  )}
-                </button>
-                <input
-                  ref={avatarInputRef}
-                  type="file"
-                  accept="image/jpeg,image/png,image/webp"
-                  className="profile-avatar-edit-input"
-                  onChange={handleAvatarChange}
-                  aria-hidden="true"
-                  tabIndex={-1}
-                />
-              </div>
+              <span className="dashboard-avatar profile-avatar-large" aria-hidden="true">
+                {profile?.avatar_url ? <img src={profile.avatar_url} alt="" /> : initials}
+              </span>
               <div>
                 <h1>
                   {about ? `${about.first_name} ${about.last_name}` : profile?.display_name || "Your profile"}
                 </h1>
               </div>
             </div>
-
-            {avatarError && (
-              <p className="form-banner form-banner-error" role="alert">
-                <TriangleAlert size={16} aria-hidden="true" /> {avatarError}
-              </p>
-            )}
 
             <nav className="profile-tabs" aria-label="Profile sections">
               {tabs.map((tab) => (

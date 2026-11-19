@@ -308,6 +308,12 @@ button {
   background: #ffffff;
 }
 
+.button-sm {
+  min-height: 38px;
+  padding: 0 16px;
+  font-size: 13px;
+}
+
 .play-button {
   display: grid;
   width: 22px;
@@ -2232,32 +2238,6 @@ button {
   font-weight: 650;
 }
 
-.dashboard-skills-grid {
-  grid-template-columns: repeat(4, 1fr);
-}
-
-.dashboard-skill-card {
-  min-height: auto;
-  cursor: default;
-}
-
-.dashboard-skill-card:hover {
-  transform: none;
-  border-color: #e0e0e0;
-  box-shadow: none;
-}
-
-.skill-badge {
-  display: inline-flex;
-  align-items: center;
-  padding: 4px 10px;
-  border-radius: 999px;
-  color: #8a5a12;
-  background: #fbe9c9;
-  font-size: 10px;
-  font-weight: 650;
-}
-
 .dashboard-mock-card {
   display: flex;
   flex-wrap: wrap;
@@ -2335,21 +2315,11 @@ button {
 }
 
 @media (max-width: 860px) {
-  .dashboard-skills-grid {
-    grid-template-columns: repeat(2, 1fr);
-  }
-
   .dashboard-stats {
     grid-template-columns: repeat(2, 1fr);
   }
 
   .setup-row {
-    grid-template-columns: 1fr;
-  }
-}
-
-@media (max-width: 560px) {
-  .dashboard-skills-grid {
     grid-template-columns: 1fr;
   }
 }
@@ -2481,45 +2451,6 @@ button {
 
 /* Shared profile forms (onboarding steps + profile tabs) */
 
-.avatar-upload-row {
-  display: flex;
-  align-items: center;
-  gap: 14px;
-  padding: 14px 16px;
-  margin-bottom: 6px;
-  border: 1px dashed #e0e0e0;
-  border-radius: 12px;
-  background: #f9f9f9;
-}
-
-.avatar-upload-placeholder {
-  display: grid;
-  width: 44px;
-  height: 44px;
-  flex: 0 0 auto;
-  place-items: center;
-  border-radius: 50%;
-  color: var(--accent-dark);
-  background: var(--accent-wash);
-}
-
-.avatar-upload-title {
-  margin: 0;
-  color: #000000;
-  font-size: 13px;
-  font-weight: 650;
-}
-
-.avatar-upload-hint {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 8px;
-  margin: 4px 0 0;
-  color: #5c5c5c;
-  font-size: 12px;
-}
-
 .phone-field-row {
   display: flex;
   gap: 8px;
@@ -2547,40 +2478,6 @@ button {
   height: 56px;
   flex: 0 0 auto;
   font-size: 18px;
-}
-
-.profile-avatar-wrap {
-  position: relative;
-  flex: 0 0 auto;
-}
-
-.profile-avatar-edit {
-  position: absolute;
-  right: -2px;
-  bottom: -2px;
-  width: 24px;
-  height: 24px;
-  display: grid;
-  place-items: center;
-  border-radius: 50%;
-  background: var(--accent);
-  color: #fff;
-  border: 2px solid var(--paper);
-  cursor: pointer;
-}
-
-.profile-avatar-edit:disabled {
-  opacity: 0.6;
-  cursor: default;
-}
-
-.profile-avatar-edit-input {
-  position: absolute;
-  width: 1px;
-  height: 1px;
-  opacity: 0;
-  overflow: hidden;
-  pointer-events: none;
 }
 
 .profile-tabs {
@@ -2821,15 +2718,6 @@ button {
   gap: 2px;
 }
 
-.app-nav-group-label {
-  margin: 18px 10px 6px;
-  color: #9a9a9a;
-  font-size: 10px;
-  font-weight: 700;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-}
-
 .sidebar-link {
   display: flex;
   align-items: center;
@@ -2983,10 +2871,6 @@ button {
     flex-direction: row;
     flex-wrap: wrap;
     gap: 6px;
-  }
-
-  .app-nav-group-label {
-    display: none;
   }
 
   .sidebar-link {
@@ -3163,169 +3047,81 @@ button {
   font-weight: 650;
 }
 
-/* Latest steps + week calendar */
+.stat-tile-label {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  color: #5c5c5c;
+  font-size: 12px;
+  font-weight: 650;
+}
 
-.activity-grid {
+.dashboard-two-col-grid {
   display: grid;
-  grid-template-columns: 1.2fr 0.8fr;
+  grid-template-columns: 1fr 1fr;
   gap: 18px;
   align-items: stretch;
 }
 
-.latest-steps-card {
-  display: flex;
-  flex-direction: column;
+.target-gap-list {
+  display: grid;
+  margin-top: 18px;
   gap: 18px;
 }
 
-.latest-steps-row {
-  display: flex;
-  gap: 14px;
-  align-items: flex-start;
-}
-
-.latest-steps-icon {
+.target-gap-row {
   display: grid;
-  width: 38px;
-  height: 38px;
-  flex: 0 0 auto;
-  place-items: center;
-  border-radius: 10px;
-  color: #1f7a4d;
-  background: var(--accent-wash);
+  grid-template-columns: 1fr auto;
+  column-gap: 12px;
+  row-gap: 8px;
 }
 
-.latest-steps-row strong {
-  display: block;
-  color: #000000;
-  font-size: 14px;
-  font-weight: 650;
-}
-
-.latest-steps-row p {
-  margin: 6px 0 10px;
-  color: #5c5c5c;
-  font-size: 12px;
-  line-height: 1.6;
-}
-
-.latest-steps-link {
-  padding: 0;
-  border: none;
-  background: none;
-  cursor: pointer;
-}
-
-.latest-steps-banner {
+.target-gap-label {
   display: flex;
-  width: 100%;
   align-items: center;
-  justify-content: space-between;
-  gap: 14px;
-  padding: 18px 20px;
-  border: none;
-  border-radius: 12px;
-  color: var(--accent-dark);
-  background: var(--accent-wash);
-  text-align: left;
-  cursor: pointer;
-}
-
-.latest-steps-banner strong {
-  display: block;
+  gap: 8px;
+  color: #1a1a1a;
   font-size: 13.5px;
   font-weight: 650;
 }
 
-.latest-steps-banner p {
-  margin: 4px 0 0;
-  color: #1a1a1a;
-  font-size: 12px;
-}
-
-.week-calendar-card {
-  display: flex;
-  flex-direction: column;
-}
-
-.week-calendar-head {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 10px;
-  color: #5c5c5c;
-}
-
-.week-calendar-head .dashboard-section-title {
-  margin: 0;
-}
-
-.week-calendar-subtitle {
-  margin: 6px 0 20px;
-  color: #5c5c5c;
-  font-size: 12px;
-}
-
-.week-calendar-row {
-  display: flex;
-  justify-content: space-between;
-  gap: 6px;
-}
-
-.week-calendar-day {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 8px;
-}
-
-.week-calendar-label {
+.target-gap-label svg {
   color: #9a9a9a;
-  font-size: 11px;
-  font-weight: 650;
 }
 
-.week-calendar-number {
-  display: grid;
-  width: 30px;
-  height: 30px;
-  place-items: center;
-  border-radius: 50%;
-  color: #5c5c5c;
-  background: #f0f0f0;
-  font-size: 12px;
-  font-weight: 650;
+.target-gap-value {
+  color: #9a9a9a;
+  font-size: 12.5px;
+  white-space: nowrap;
 }
 
-.week-calendar-number-active {
-  color: #fff;
+.target-gap-track {
+  grid-column: 1 / -1;
+  height: 6px;
+  border-radius: 999px;
+  background: #ececec;
+  overflow: hidden;
+}
+
+.target-gap-fill {
+  height: 100%;
+  border-radius: 999px;
   background: var(--accent-dark);
 }
 
-.week-calendar-quote {
-  display: flex;
-  gap: 10px;
-  margin-top: auto;
-  padding-top: 20px;
+.target-gap-overall {
+  padding-top: 14px;
   border-top: 1px solid #ececec;
-  color: #5c5c5c;
 }
 
-.week-calendar-quote svg {
-  flex: 0 0 auto;
-  margin-top: 2px;
-  color: #b0b0b0;
-}
-
-.week-calendar-quote p {
-  margin: 0;
-  font-size: 12.5px;
-  font-style: italic;
-  line-height: 1.6;
+.dashboard-start-practice-row {
+  display: flex;
+  justify-content: center;
+  margin-top: 44px;
 }
 
 @media (max-width: 860px) {
-  .activity-grid {
+  .dashboard-two-col-grid {
     grid-template-columns: 1fr;
   }
 }
@@ -3436,8 +3232,7 @@ button {
 .dashboard-shell[data-theme="dark"] .skill-card h3,
 .dashboard-shell[data-theme="dark"] .dashboard-breadcrumb strong,
 .dashboard-shell[data-theme="dark"] .stat-tile strong,
-.dashboard-shell[data-theme="dark"] .latest-steps-row strong,
-.dashboard-shell[data-theme="dark"] .latest-steps-banner strong,
+.dashboard-shell[data-theme="dark"] .target-gap-label,
 .dashboard-shell[data-theme="dark"] .notifications-panel strong {
   color: #f5f5f5;
 }
@@ -3445,13 +3240,12 @@ button {
 .dashboard-shell[data-theme="dark"] .dashboard-hero-head p,
 .dashboard-shell[data-theme="dark"] .dashboard-breadcrumb,
 .dashboard-shell[data-theme="dark"] .stat-tile span,
+.dashboard-shell[data-theme="dark"] .stat-tile-label,
 .dashboard-shell[data-theme="dark"] .skill-card > p,
 .dashboard-shell[data-theme="dark"] .sidebar-link,
 .dashboard-shell[data-theme="dark"] .dashboard-section-link,
 .dashboard-shell[data-theme="dark"] .empty-card p,
-.dashboard-shell[data-theme="dark"] .latest-steps-row p,
-.dashboard-shell[data-theme="dark"] .week-calendar-subtitle,
-.dashboard-shell[data-theme="dark"] .week-calendar-label,
+.dashboard-shell[data-theme="dark"] .target-gap-value,
 .dashboard-shell[data-theme="dark"] .notifications-panel p {
   color: #a6a6a6;
 }
@@ -3499,28 +3293,12 @@ button {
   border-color: rgba(239, 68, 68, 0.2);
 }
 
-.dashboard-shell[data-theme="dark"] .latest-steps-banner {
-  color: #ff6b6b;
-  background: rgba(239, 68, 68, 0.12);
+.dashboard-shell[data-theme="dark"] .target-gap-track {
+  background: rgba(255, 255, 255, 0.08);
 }
 
-.dashboard-shell[data-theme="dark"] .latest-steps-banner p,
-.dashboard-shell[data-theme="dark"] .week-calendar-quote p {
-  color: #a6a6a6;
-}
-
-.dashboard-shell[data-theme="dark"] .week-calendar-number {
-  color: #c4c4c4;
-  background: rgba(255, 255, 255, 0.06);
-}
-
-.dashboard-shell[data-theme="dark"] .week-calendar-quote {
+.dashboard-shell[data-theme="dark"] .target-gap-overall {
   border-top-color: rgba(255, 255, 255, 0.08);
-}
-
-.dashboard-shell[data-theme="dark"] .skill-badge {
-  color: #f0c674;
-  background: rgba(240, 198, 116, 0.18);
 }
 
 .dashboard-shell[data-theme="dark"] .brand {
@@ -3562,12 +3340,6 @@ button {
   padding: 0;
   border: none;
   background: none;
-  cursor: pointer;
-}
-
-.dashboard-skill-card-button {
-  width: 100%;
-  text-align: left;
   cursor: pointer;
 }
 

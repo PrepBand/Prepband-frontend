@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { ArrowRight, Camera, Loader2 } from "lucide-react";
+import { ArrowRight, Loader2 } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { dialCodes } from "../../data/countries";
 import { aboutYouSchema, type AboutYouFormValues } from "../../lib/validation";
@@ -52,18 +52,6 @@ export function AboutYouForm({ defaultValues, onSave, onSaved, submitLabel, savi
           {serverError}
         </p>
       )}
-
-      <div className="avatar-upload-row">
-        <span className="avatar-upload-placeholder" aria-hidden="true">
-          <Camera size={20} strokeWidth={1.8} />
-        </span>
-        <div>
-          <p className="avatar-upload-title">Profile photo</p>
-          <p className="avatar-upload-hint">
-            Photo uploads are coming soon <span className="skill-badge">Coming soon</span>
-          </p>
-        </div>
-      </div>
 
       <div className="setup-row">
         <div className="form-field">
