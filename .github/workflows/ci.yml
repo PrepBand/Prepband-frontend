@@ -11,12 +11,31 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # full history for the secret scan
 
       - uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 22
           cache: npm
 
       - run: npm ci
 
+      # Lint (oxlint: correctness, React hooks, jsx-a11y). Fails on errors only.
+      - run: npm run lint
+
+      # Typecheck + production build.
       - run: npm run build
+
+      # Unit, component and axe accessibility tests.
+      - run: npm test
+
+      # Known vulnerabilities in what ships to the browser.
+      - name: Dependency audit
+        run: npm audit --omit=dev --audit-level=high
+
+      # Scenario 16: no secrets in git history.
+      - name: Secret scan
+        uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

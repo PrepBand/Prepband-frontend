@@ -1,0 +1,42 @@
+{
+  "$schema": "./node_modules/oxlint/configuration_schema.json",
+  // Frontend lint (spec 13.1). Run: npm run lint. CI fails on errors only.
+  "plugins": ["react", "typescript", "jsx-a11y", "import", "vitest"],
+  "categories": {
+    "correctness": "error",
+    "suspicious": "warn"
+  },
+  "rules": {
+    "react/react-in-jsx-scope": "off",
+    "react-hooks/rules-of-hooks": "error",
+    "react-hooks/exhaustive-deps": "warn",
+    "jsx-a11y/alt-text": "error",
+    "jsx-a11y/anchor-is-valid": "error",
+    // Our labels wrap the input and put the text a few elements down.
+    "jsx-a11y/label-has-associated-control": ["warn", { "depth": 4 }],
+    "jsx-a11y/no-autofocus": "off",
+    "no-console": ["warn", { "allow": ["warn", "error"] }],
+
+    // role="status"/"alert"/"group"/"progressbar" on a div is the standard
+    // ARIA live-region/grouping pattern; <output>/<progress> mean something else.
+    "jsx-a11y/prefer-tag-over-role": "off",
+    // Listening audio must not have captions before submission (exam rules;
+    // the transcript appears on the results page), and Speaking playback is
+    // the student's own voice. Text equivalents exist for both.
+    "jsx-a11y/media-has-caption": "off",
+    // React Compiler rules. The app doesn't use the compiler, and its
+    // fetch-in-effect loading flags and render-time dates are intended.
+    "react/set-state-in-effect": "off",
+    "react/purity": "off",
+    // The overlay's click-to-close also has an Escape-key handler.
+    "jsx-a11y/click-events-have-key-events": "off",
+    "jsx-a11y/no-noninteractive-element-interactions": "off",
+    // These tests attach the expectation first, advance fake timers, then await.
+    "vitest/valid-expect": "off",
+    // Untyped vi.fn() mocks are fine in tests; tsc still checks the calls.
+    "vitest/require-mock-type-parameters": "off",
+    // Side-effect CSS imports in main.tsx.
+    "import/no-unassigned-import": "off"
+  },
+  "ignorePatterns": ["dist/**", "src/__preview__/**", "public/**"]
+}

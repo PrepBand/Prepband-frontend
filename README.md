@@ -82,37 +82,28 @@ npm install
 npm run dev       # Vite dev server, pinned to http://localhost:5180
 npm run build     # tsc -b && vite build
 npm run preview   # preview the production build
+npm run lint      # oxlint (correctness, React hooks, jsx-a11y)
+npm test          # Vitest: unit, component and axe accessibility tests
 ```
 
 Requires a `.env` — copy `.env.example` and fill in the real Supabase
 project URL/anon key (not committed; gitignored). Vite only reads `.env` at
 server startup, not via HMR, so restart `npm run dev` after editing it.
 
-## Deployment
+## Reliability and security notes
 
-Deployed on Netlify: **https://prepband.netlify.app**. Continuous
-deployment is connected to this repo's `main` branch (`PrepBand/Prepband-frontend`
-on GitHub) — a push to `main` triggers a build and redeploy automatically.
-`netlify.toml` configures the build command, SPA fallback redirect, and
-baseline security headers.
+- **Cold starts:** the free Render API sleeps when idle. `src/lib/apiClient.ts`
+  shows a "Waking up the server" banner after 4 s and retries GET/PUT (never
+  POST/PATCH/DELETE) on network errors and 502/503/504 for up to 90 s.
+- **Error pages:** `/403`, `/500`, `/503`, plus an error boundary that shows the
+  500 page if a screen crashes.
+- **Policies:** `/about`, `/privacy`, `/terms`, `/cookies` (drafts for legal review).
+- **Headers:** `netlify.toml` sets HSTS, frame/sniff/referrer protections and a
+  **report-only** CSP. Switch it to enforcing after a clean live check
+  (backend repo `docs/RUNBOOK.md` section 3).
+- **Admin:** `/admin` also has Analytics, Certificates (revocation) and the
+  Audit log; Tests supports bulk actions; sections support CSV import/export.
 
-## Status
+## License
 
-Auth (signup/login/email-OTP verification/password reset), onboarding, the
-landing page, dashboard, and profile (with Cloudflare R2 avatar upload via
-a Supabase Edge Function) call real, live services. The five `/app/*`
-practice/mock/history/progress/certificates pages are an interactive
-front-end design pass only — there's no test engine or backend wired up to
-them yet (see `../CLAUDE.md`'s "Not started yet" section for the full
-remaining list).
-
-## Before touching any external service
-
-The user works on other, unrelated projects through the same connected
-MCP/plugin accounts (GitHub, Render, Cloudflare, Supabase, Resend, Netlify,
-etc.). **Before any write/mutating call through one of those services:
-confirm the resource is actually named for Prepband, then get the user's
-explicit approval for that specific action** — there are no standing
-exceptions for any of these services. See `../CLAUDE.md`'s "Cross-project
-safety rule" and `../rules.md` for the full rule. If you can't confirm the
-resource is Prepband's own, make no change and ask instead of guessing.
+MIT. See [`LICENSE`](LICENSE). Contributions: [`CONTRIBUTING.md`](CONTRIBUTING.md).
