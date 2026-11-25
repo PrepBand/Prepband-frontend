@@ -24,8 +24,10 @@ export function Footer() {
           <div>
             <span className="footer-heading">LEGAL</span>
             <Link to="/legal">Help & support</Link>
-            <Link to="/legal">Privacy policy</Link>
-            <Link to="/legal">Terms</Link>
+            <Link to="/privacy">Privacy policy</Link>
+            <Link to="/terms">Terms</Link>
+            <Link to="/cookies">Cookies &amp; storage</Link>
+            <Link to="/about">About</Link>
             <Link to="/contact">Contact us</Link>
           </div>
         </div>

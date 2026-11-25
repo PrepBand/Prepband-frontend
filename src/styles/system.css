@@ -1,0 +1,225 @@
+/* Server status banner, status pages, bulk admin tools and later fixes (Phase 6 on). */
+
+/* --- Phase 6: server status, status pages, bulk admin tools ---------------- */
+
+.server-banner {
+  position: fixed;
+  inset: 12px 12px auto;
+  z-index: 1000;
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 12px 14px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--paper);
+  color: var(--ink);
+  font-size: 13px;
+  line-height: 1.5;
+  box-shadow: 0 8px 24px rgb(0 0 0 / 0.12);
+}
+
+.server-banner > svg {
+  flex: none;
+  margin-top: 2px;
+}
+
+.server-banner-offline {
+  border-color: var(--error-border);
+  background: var(--error-bg);
+  color: var(--error);
+}
+
+.server-banner-close {
+  flex: none;
+  margin-left: auto;
+  padding: 2px;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+}
+
+.server-banner-close:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.status-page {
+  max-width: 640px;
+  margin: 0 auto;
+  text-align: center;
+}
+
+.status-page-icon {
+  color: var(--accent);
+}
+
+.status-page-code {
+  margin: 8px 0 0;
+  color: var(--muted);
+  font-size: 13px;
+  letter-spacing: 0.08em;
+}
+
+.status-page-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 10px;
+  margin-top: 20px;
+}
+
+.about-page {
+  max-width: 760px;
+  margin: 0 auto;
+}
+
+.admin-bulk-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  border: 1px solid var(--accent);
+  border-radius: 10px;
+  background: var(--accent-wash);
+}
+
+.admin-bulk-tools {
+  display: grid;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.admin-check-col {
+  width: 36px;
+}
+
+.admin-row-selected td {
+  background: var(--accent-wash);
+}
+
+.admin-question-check {
+  flex: none;
+  margin-top: 4px;
+}
+
+.admin-inline-field {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+}
+
+.admin-marks-input {
+  width: 80px;
+}
+
+.admin-stat-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.admin-stat-row .admin-stat {
+  display: grid;
+  gap: 4px;
+}
+
+.admin-stat-row .admin-stat strong {
+  font-size: 26px;
+  line-height: 1.1;
+}
+
+.admin-pill-danger {
+  color: var(--error);
+  background: var(--error-bg);
+}
+
+.admin-audit-details {
+  max-width: 360px;
+  max-height: 220px;
+  overflow: auto;
+  margin: 6px 0 0;
+  font-size: 12px;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.admin-pagination {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.form-banner-text ul {
+  margin: 6px 0 0;
+  padding-left: 18px;
+}
+
+.form-banner-text p {
+  margin: 0;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .server-banner .spin {
+    animation: none;
+  }
+}
+
+/* Code review fixes: shown while a page's code downloads. */
+.page-loading {
+  margin: 0;
+  padding: 3rem 1.5rem;
+  text-align: center;
+  color: var(--muted, #5b5b5b);
+}
+
+/* Word limit under a text answer (matches how the exam marks it). */
+.engine-word-limit {
+  display: block;
+  margin-top: 0.35rem;
+  font-size: 0.85rem;
+  color: var(--muted);
+}
+
+.engine-word-limit-over {
+  color: #9b1c1c;
+  font-weight: 600;
+}
+
+/* Dark theme text defaults (found by the end-to-end accessibility run,
+   2026-11-25). Dark mode sets colours element by element, so any text
+   without its own rule (question prompts, answer options, definition
+   lists, milestone dates) fell back to near-black on a dark card (1.02:1).
+   Cards now default to light text; elements with their own colour keep it. */
+.dashboard-shell[data-theme="dark"] .dashboard-card {
+  color: #e6e6e6;
+}
+
+.dashboard-shell[data-theme="dark"] .practice-level {
+  color: #a6a6a6;
+}
+
+/* A red secondary button sits on a light button background even in dark
+   mode, so it needs the darker red there (#b3261e on #f9f9f9 is 6:1). */
+.dashboard-shell[data-theme="dark"] .button-secondary.admin-danger {
+  color: var(--error);
+}
+
+/* Small helper text that used #9a9a9a (2.7:1) now uses --muted in light
+   mode (see dashboard.css / student-pages.css); in dark mode it needs a
+   lighter grey than --muted. */
+.dashboard-shell[data-theme="dark"] .engine-word-limit {
+  color: #b5b5b5;
+}
+
+.dashboard-shell[data-theme="dark"] .engine-word-limit-over {
+  color: #f08a8e;
+}

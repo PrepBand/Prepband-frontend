@@ -39,7 +39,7 @@ export function DashboardTopbar({ label }: { label: string }) {
           className="dashboard-avatar dashboard-avatar-button"
           type="button"
           onClick={() => navigate("/app/profile")}
-          aria-label="Open your profile"
+          aria-label={profile?.avatar_url || !initials ? "Open your profile" : `${initials}, open your profile`}
         >
           {profile?.avatar_url ? <img src={profile.avatar_url} alt="" /> : initials}
         </button>

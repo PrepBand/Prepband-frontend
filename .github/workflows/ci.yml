@@ -11,12 +11,40 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # full history for the secret scan
 
       - uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 22
           cache: npm
 
       - run: npm ci
 
+      # Lint (oxlint: correctness, React hooks, jsx-a11y). Fails on errors only.
+      - run: npm run lint
+
+      # Typecheck + production build.
       - run: npm run build
+
+      # Unit, component and axe accessibility tests.
+      - run: npm test
+
+      # Known vulnerabilities in what ships to the browser.
+      - name: Dependency audit
+        run: npm audit --omit=dev --audit-level=high
+
+      # Scenario 16: no secrets in git history.
+      # Runs the gitleaks CLI directly: the gitleaks-action wrapper needs a
+      # license key for organization repos and targets the retired Node 20.
+      # Pinned version, checked against the release's published checksum.
+      - name: Secret scan
+        env:
+          GITLEAKS_VERSION: 8.30.1
+          GITLEAKS_SHA256: 551f6fc83ea457d62a0d98237cbad105af8d557003051f41f3e7ca7b3f2470eb
+        run: |
+          archive="gitleaks_${GITLEAKS_VERSION}_linux_x64.tar.gz"
+          curl -sSfL -o "$RUNNER_TEMP/$archive" "https://github.com/gitleaks/gitleaks/releases/download/v${GITLEAKS_VERSION}/$archive"
+          echo "${GITLEAKS_SHA256}  $RUNNER_TEMP/$archive" | sha256sum -c -
+          tar -xzf "$RUNNER_TEMP/$archive" -C "$RUNNER_TEMP" gitleaks
+          "$RUNNER_TEMP/gitleaks" git --redact --no-banner --exit-code 1 .

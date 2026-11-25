@@ -2,6 +2,10 @@
   command = "npm ci && npm run build"
   publish = "dist"
 
+[build.environment]
+  # Matches CI. Vite 8 needs Node 20.19+; the test tooling needs 22.
+  NODE_VERSION = "22"
+
 [[redirects]]
   from = "/*"
   to = "/index.html"
@@ -13,8 +17,25 @@
     X-Content-Type-Options = "nosniff"
     X-Frame-Options = "DENY"
     Referrer-Policy = "strict-origin-when-cross-origin"
-    Permissions-Policy = "camera=(), microphone=(), geolocation=()"
+    # microphone=(self): Speaking practice (FR-SPEAK-03/04) records in the
+    # browser. This can't be scoped to the Speaking route: it's a single-page
+    # app, so the policy comes from whichever URL the tab first loaded and
+    # doesn't change on in-app navigation. "self" still blocks every
+    # third-party frame, and the browser still asks the student first.
+    Permissions-Policy = "camera=(), microphone=(self), geolocation=()"
+    Strict-Transport-Security = "max-age=31536000; includeSubDomains"
+    Cross-Origin-Opener-Policy = "same-origin"
+    # Phase 6 CSP, REPORT-ONLY until checked against the deployed site
+    # (Docs/RUNBOOK.md "Turn on the CSP"): browsers log violations in the
+    # console but block nothing. Origins: Supabase (API + realtime), the
+    # Render API, R2 test audio and avatars, and the free speech models
+    # (Hugging Face and its CDNs, jsDelivr for ONNX Runtime/VAD wasm, the
+    # Vosk model on GitHub Pages, WebLLM libraries on raw.githubusercontent).
+    # 'wasm-unsafe-eval' lets WebAssembly compile; nothing allows eval().
+    Content-Security-Policy-Report-Only = "default-src 'self'; script-src 'self' 'wasm-unsafe-eval' https://cdn.jsdelivr.net; worker-src 'self' blob:; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data: blob: https://*.r2.dev https://*.r2.cloudflarestorage.com; media-src 'self' blob: data: https://*.r2.dev; connect-src 'self' https://ztiuocjlthzvuonvwjzm.supabase.co wss://ztiuocjlthzvuonvwjzm.supabase.co https://prepband-backend.onrender.com https://*.r2.dev https://*.r2.cloudflarestorage.com https://huggingface.co https://*.huggingface.co https://*.hf.co https://cdn.jsdelivr.net https://ccoreilly.github.io https://raw.githubusercontent.com; frame-ancestors 'none'; base-uri 'self'; form-action 'self'; object-src 'none'"
 
-# Speaking practice (FR-SPEAK) will need microphone access on its own pages
-# once built — scope a microphone=(self) override onto that route's path
-# instead of loosening the site-wide default above.
+# Hashed build assets never change, so browsers can keep them for a year.
+[[headers]]
+  for = "/assets/*"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"

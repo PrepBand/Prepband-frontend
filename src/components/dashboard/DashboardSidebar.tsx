@@ -1,5 +1,5 @@
 import type { LucideIcon } from "lucide-react";
-import { Award, BarChart3, BookOpen, FileText, LayoutGrid, Library, LogOut, Mail, Scale } from "lucide-react";
+import { Award, BarChart3, BookOpen, CalendarDays, FileText, LayoutGrid, Library, LogOut, Mail, RotateCcw, Scale } from "lucide-react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { Logo } from "../layout/Logo";
 import { supabase } from "../../lib/supabaseClient";
@@ -10,6 +10,8 @@ const mainNav: NavItem[] = [
   { label: "Overview", icon: LayoutGrid, to: "/app/dashboard" },
   { label: "Practice", icon: BookOpen, to: "/app/practice" },
   { label: "Mock tests", icon: FileText, to: "/app/mock-tests" },
+  { label: "Study plan", icon: CalendarDays, to: "/app/study-plan" },
+  { label: "Review mistakes", icon: RotateCcw, to: "/app/review" },
   { label: "My progress", icon: BarChart3, to: "/app/progress" },
   { label: "Resources", icon: Library, to: "/app/resources" },
   { label: "Certificates", icon: Award, to: "/app/certificates" },

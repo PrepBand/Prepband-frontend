@@ -6,25 +6,47 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "test": "vitest run",
+    "lint": "oxlint"
   },
   "dependencies": {
     "@hookform/resolvers": "^7.0.1",
+    "@huggingface/transformers": "^4.3.2",
+    "@mintplex-labs/piper-tts-web": "^1.0.5",
+    "@mlc-ai/web-llm": "^0.2.89",
+    "@ricky0123/vad-web": "^0.0.31",
     "@supabase/supabase-js": "^2.118.0",
+    "kokoro-js": "^1.2.1",
     "lucide-react": "^1.62.0",
+    "onnxruntime-web": "^1.31.1",
     "react": "^19.3.1",
     "react-dom": "^19.3.1",
     "react-hook-form": "^7.91.0",
     "react-router-dom": "^7.18.5",
+    "vosk-browser": "^0.0.8",
     "zod": "^4.6.7"
   },
   "devDependencies": {
     "@tailwindcss/vite": "^4.3.3",
+    "@testing-library/dom": "^10.4.2",
+    "@testing-library/react": "^16.3.3",
+    "@testing-library/user-event": "^14.6.13",
     "@types/react": "^19.2.0",
     "@types/react-dom": "^19.2.0",
     "@vitejs/plugin-react": "^6.1.2",
+    "axe-core": "^4.14.1",
+    "jsdom": "^31.0.1",
+    "oxlint": "^1.95.0",
     "tailwindcss": "^4.3.3",
     "typescript": "^7.0.2",
-    "vite": "^8.3.5"
+    "vite": "^8.3.5",
+    "vitest": "^5.1.1"
+  },
+  "overrides": {
+    "kokoro-js": {
+      "@huggingface/transformers": "$@huggingface/transformers"
+    },
+    "uuid": "^11.1.1"
   }
 }
