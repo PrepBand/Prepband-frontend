@@ -42,6 +42,7 @@ vi.mock("./apiClient", () => {
 });
 
 const { useAttemptSession } = await import("./useAttemptSession");
+const { api, ApiError } = await import("./apiClient");
 const { pendingChanges, rememberChange } = await import("./draftStore");
 
 const source = { kind: "test" as const, testId: "t1", mode: "practice" as const };
@@ -136,5 +137,47 @@ describe("useAttemptSession saves", () => {
       await result.current.submit();
     });
     expect(localStorage.getItem("prepband.draft.a1")).toBeNull();
+  });
+
+  it("waits for a save already in flight before submitting", async () => {
+    const { result } = renderHook(() => useAttemptSession(source));
+    await waitFor(() => expect(result.current.loading).toBe(false));
+    let release: () => void = () => {};
+    vi.mocked(api.put).mockImplementationOnce(async (path: string, body: unknown) => {
+      calls.push({ method: "PUT", path, body });
+      await new Promise<void>((resolve) => (release = resolve));
+      return { client_seq: (body as { client_seq: number }).client_seq };
+    });
+    act(() => result.current.setAnswer("q1", "latest"));
+    // Let the debounce fire so the save is in flight, not queued.
+    await waitFor(() => expect(calls.some((c) => c.method === "PUT")).toBe(true), { timeout: 2000 });
+    let submitted = false;
+    const submitting = act(async () => {
+      await result.current.submit();
+      submitted = true;
+    });
+    await new Promise((resolve) => setTimeout(resolve, 50));
+    expect(calls.some((c) => c.path.endsWith("/submit"))).toBe(false);
+    release();
+    await submitting;
+    expect(submitted).toBe(true);
+    const putAt = calls.findIndex((c) => c.method === "PUT");
+    const submitAt = calls.findIndex((c) => c.path.endsWith("/submit"));
+    expect(submitAt).toBeGreaterThan(putAt);
+  });
+
+  it("does not submit while the latest change keeps failing to save", async () => {
+    const { result } = renderHook(() => useAttemptSession(source));
+    await waitFor(() => expect(result.current.loading).toBe(false));
+    vi.mocked(api.put).mockRejectedValue(new ApiError(503, "unavailable", "Server waking up"));
+    act(() => result.current.setAnswer("q1", "latest"));
+    await act(async () => {
+      await result.current.submit();
+    });
+    expect(calls.some((c) => c.path.endsWith("/submit"))).toBe(false);
+    expect(result.current.error).toMatch(/haven't saved/);
+    // The device copy is kept for recovery.
+    expect(pendingChanges("a1")["q:q1"]).toMatchObject({ value: "latest" });
+    vi.mocked(api.put).mockReset();
   });
 });
