@@ -79,14 +79,14 @@ export function VerifyResetCodePage() {
       setServerError(error.message);
       return;
     }
-    setResendMessage("We sent a new code to your email.");
+    setResendMessage("If this email has an account, a new code is on its way.");
     start();
   };
 
   return (
     <AuthLayout
       title="Enter reset code"
-      subtitle={`Enter the 6-digit code we sent to ${email}.`}
+      subtitle={`If ${email} has a Prepband account, we sent it a 6-digit code. Enter it below.`}
       footer={
         <Link className="text-link-small" to="/auth/forgot-password">
           <ArrowLeft size={14} aria-hidden="true" /> Use a different email

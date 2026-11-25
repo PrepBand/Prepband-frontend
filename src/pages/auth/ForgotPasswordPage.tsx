@@ -11,7 +11,6 @@ import { forgotPasswordSchema, type ForgotPasswordFormValues } from "../../lib/v
 export function ForgotPasswordPage() {
   const navigate = useNavigate();
   const [serverError, setServerError] = useState("");
-  const [accountNotFound, setAccountNotFound] = useState(false);
   const {
     register,
     handleSubmit,
@@ -23,20 +22,10 @@ export function ForgotPasswordPage() {
 
   const onSubmit = async (values: ForgotPasswordFormValues) => {
     setServerError("");
-    setAccountNotFound(false);
 
-    const { data: isRegistered, error: lookupError } = await supabase.rpc("is_email_registered", {
-      p_email: values.email,
-    });
-    if (lookupError) {
-      setServerError(lookupError.message);
-      return;
-    }
-    if (!isRegistered) {
-      setAccountNotFound(true);
-      return;
-    }
-
+    // Don't reveal whether an account exists: always go on to the code
+    // step. Supabase sends nothing (and reports no error) for an unknown
+    // email, so the page looks the same either way.
     const { error } = await supabase.auth.resetPasswordForEmail(values.email);
     if (error) {
       setServerError(error.message);
@@ -56,11 +45,6 @@ export function ForgotPasswordPage() {
       }
     >
       <form className="auth-form" onSubmit={handleSubmit(onSubmit)} noValidate>
-        {accountNotFound && (
-          <p className="form-banner form-banner-error form-banner-text" role="alert">
-            No account found for this email. <Link to="/auth/signup">Sign up instead</Link>.
-          </p>
-        )}
         {serverError && (
           <p className="form-banner form-banner-error" role="alert">
             {serverError}
