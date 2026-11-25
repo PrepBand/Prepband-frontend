@@ -100,9 +100,12 @@ function QuestionInput({ question, value, onChange, disabled }: Props) {
       <div className="engine-matching">
         {prompts.map((prompt, index) => (
           <div className="engine-matching-row" key={prompt}>
-            <span className="engine-matching-prompt">{prompt}</span>
+            <span className="engine-matching-prompt" id={`match-${question.id}-${index}`}>
+              {prompt}
+            </span>
             <select
               className="form-input"
+              aria-labelledby={`match-${question.id}-${index}`}
               value={current[index] ?? ""}
               disabled={disabled}
               onChange={(event) => onChange({ ...current, [index]: event.target.value })}

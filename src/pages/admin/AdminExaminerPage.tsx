@@ -73,7 +73,8 @@ export function AdminExaminerPage() {
     setBusy(row.key);
     setError("");
     try {
-      await save(row, row.audio_url);
+      // New wording makes the old clip wrong: drop it so the new text is spoken.
+      await save(row, null);
     } catch (err) {
       setError(describeError(err, "Couldn't save the line."));
     } finally {

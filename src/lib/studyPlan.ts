@@ -96,7 +96,9 @@ export function buildStudyPlan(input: PlanInput): StudyPlan {
   // More sessions as the exam gets close, fewer in the final days (rest).
   let sessionsPerWeek = BASE_SESSIONS[level];
   if (phase === "final_stretch") sessionsPerWeek += 1;
-  if (phase === "final_week") sessionsPerWeek = Math.max(3, sessionsPerWeek - 2);
+  // Never below one session per skill: every skill gets at least one below,
+  // so a lower total would promise fewer sessions than the plan asks for.
+  if (phase === "final_week") sessionsPerWeek = Math.max(MODULES.length, sessionsPerWeek - 2);
 
   const twoWeeksAgo = today - 14 * DAY;
   const focus: ModuleFocus[] = MODULES.map((module) => {

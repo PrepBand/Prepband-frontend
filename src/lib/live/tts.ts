@@ -168,6 +168,9 @@ export class VoiceChain {
   private current: { stop: () => void } | null = null;
   /** True while browser speechSynthesis is talking (no analyser signal). */
   syntheticSpeaking = false;
+  /** Engines still loading, so dispose() can stop them too. */
+  private loadingEngines = new Set<VoiceEngine>();
+  private disposed = false;
 
   constructor(
     private readonly order: TierId[],
@@ -182,6 +185,7 @@ export class VoiceChain {
   }
 
   private emit(update: Partial<VoiceStatus>) {
+    if (this.disposed) return;
     this.status = { ...this.status, ...update };
     this.onStatus(this.status);
   }
@@ -198,8 +202,10 @@ export class VoiceChain {
 
   private async loadFrom(start: number): Promise<void> {
     for (let i = start; i < this.order.length; i += 1) {
+      if (this.disposed) return;
       const id = this.order[i];
       const engine = createVoiceEngine(id, this.webgpu);
+      this.loadingEngines.add(engine);
       this.emit({ loading: id, progress: 0, note: undefined });
       try {
         await withStallTimeout(
@@ -212,12 +218,19 @@ export class VoiceChain {
           LOAD_MAX_MS,
           "Loading",
         );
+        this.loadingEngines.delete(engine);
+        // The session ended while this tier loaded: don't install it.
+        if (this.disposed) {
+          engine.dispose();
+          return;
+        }
         this.engine?.dispose();
         this.engine = engine;
         this.index = i;
         this.emit({ active: id, loading: null, progress: null });
         return;
       } catch (error) {
+        this.loadingEngines.delete(engine);
         engine.dispose();
         this.emit({ failures: [...this.status.failures, { id, reason: error instanceof Error ? error.message : String(error) }] });
       }
@@ -346,7 +359,10 @@ export class VoiceChain {
   }
 
   dispose(): void {
+    this.disposed = true;
     this.stop();
+    this.loadingEngines.forEach((engine) => engine.dispose());
+    this.loadingEngines.clear();
     this.engine?.dispose();
     this.engine = null;
     void this.context.close();

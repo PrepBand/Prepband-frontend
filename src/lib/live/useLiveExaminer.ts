@@ -124,6 +124,10 @@ export function useLiveExaminer({
   const askAgainRequested = useRef(false);
   const prepDone = useRef<(() => void) | null>(null);
   const cancelled = useRef(false);
+  /** False once the examiner has closed: async setup and the running
+   * session check it after every wait, so nothing outlives the page. */
+  const alive = useRef(true);
+  const followAbort = useRef<AbortController | null>(null);
   const captionId = useRef(0);
   const options = useRef<LiveOptions>({ saveTranscript: false, allowCloudRecognition: false, enhancedFollowUps: false });
 
@@ -153,7 +157,13 @@ export function useLiveExaminer({
   }, []);
 
   const release = useCallback(() => {
-    listenHandle.current?.finish();
+    // Settle the listener now, before its detector and mic go away.
+    listenHandle.current?.cancel();
+    listenHandle.current = null;
+    followAbort.current?.abort();
+    followAbort.current = null;
+    chooser.current.dispose();
+    chooser.current = scriptChooser;
     detector.current?.destroy();
     detector.current = null;
     mic.current?.close();
@@ -166,13 +176,15 @@ export function useLiveExaminer({
     stt.current = null;
   }, []);
 
-  useEffect(
-    () => () => {
+  useEffect(() => {
+    alive.current = true;
+    return () => {
+      alive.current = false;
       cancelled.current = true;
+      prepDone.current?.();
       release();
-    },
-    [release],
-  );
+    };
+  }, [release]);
 
   /** Step 1: microphone, then load every job's tiers (with fallbacks). */
   const prepare = useCallback(
@@ -181,16 +193,26 @@ export function useLiveExaminer({
       setPhase("loading");
       setError("");
       const capabilities = caps ?? (await detectCapabilities());
+      if (!alive.current) return;
       setCaps(capabilities);
+      let stream: MediaStream;
       try {
-        micStream.current = await openMicrophone();
+        stream = await openMicrophone();
       } catch {
+        if (!alive.current) return;
         setError("We couldn't use your microphone. Allow microphone access for this site, or choose another way to practise.");
         setPhase("error");
         return;
       }
-      mic.current = new MicCapture(micStream.current);
+      // Permission granted after the student left: release it straight away.
+      if (!alive.current) {
+        stopStream(stream);
+        return;
+      }
+      micStream.current = stream;
+      mic.current = new MicCapture(stream);
       await mic.current.resume();
+      if (!alive.current) return release();
 
       // Examiner voice (needs to be ready before starting).
       voice.current = new VoiceChain(tierOrder("voice", capabilities), capabilities.webgpu, setVoiceStatus);
@@ -206,9 +228,15 @@ export function useLiveExaminer({
       if (turnOrder[0] === "silero" && !disabledTiers().has("silero")) {
         setTurnsStatus({ active: null, loading: "silero", failures: [] });
         try {
-          detector.current = await withTimeout(createSileroDetector(micStream.current), 30000, "Silero VAD");
+          const silero = await withTimeout(createSileroDetector(stream), 30000, "Silero VAD");
+          if (!alive.current) {
+            silero.destroy();
+            return release();
+          }
+          detector.current = silero;
           setTurnsStatus({ active: "silero", loading: null, failures: [] });
         } catch (err) {
+          if (!alive.current) return release();
           const energyOff = disabledTiers().has("energy");
           detector.current = energyOff ? createTimeLimitDetector() : createEnergyDetector(mic.current);
           setTurnsStatus({
@@ -230,7 +258,11 @@ export function useLiveExaminer({
       // Optional follow-up models (opt-in, WebGPU only).
       const followOrder = tierOrder("followups", capabilities);
       if (chosen.enhancedFollowUps && followOrder.length > 1) {
-        void loadFollowUpChooser(followOrder, setFollowStatus).then((c) => {
+        const abort = new AbortController();
+        followAbort.current = abort;
+        void loadFollowUpChooser(followOrder, setFollowStatus, abort.signal).then((c) => {
+          if (abort.signal.aborted) return c.dispose();
+          chooser.current.dispose();
           chooser.current = c;
         });
       } else {
@@ -239,8 +271,9 @@ export function useLiveExaminer({
 
       phrases.current = await loadPhrases();
       await voiceReady;
+      if (!alive.current) release();
     },
-    [caps],
+    [caps, release],
   );
 
   /** Use a lighter voice now instead of waiting for a download. */
@@ -362,6 +395,8 @@ export function useLiveExaminer({
             const handle = listenForAnswer(mic.current!, getDetector, step);
             listenHandle.current = handle;
             listened = await handle.result;
+            // Closed mid-answer: everything is released; stop quietly.
+            if (!alive.current) return;
             listenHandle.current = null;
             setListenInfo(null);
             if (askAgainRequested.current && mode === "practice") {
@@ -416,8 +451,11 @@ export function useLiveExaminer({
         }
       }
     } catch (err) {
+      if (!alive.current) return;
       setError(err instanceof Error ? err.message : String(err));
     }
+    // Left the page (not "End test"): never save or submit after closing.
+    if (!alive.current) return;
 
     setActivity("idle");
     setPhase("saving");

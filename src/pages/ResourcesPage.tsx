@@ -68,8 +68,13 @@ export function ResourcesPage() {
     return () => clearTimeout(handle);
   }, [typed, setParams]);
 
+  // Each new search (offset 0) starts a new generation. A response from an
+  // older search, including a "Show more" for old filters, is ignored.
+  const generation = useRef(0);
   const load = useCallback(
     async (offset: number) => {
+      if (offset === 0) generation.current += 1;
+      const mine = generation.current;
       setLoading(true);
       setError("");
       const query = new URLSearchParams(filterQuery);
@@ -77,11 +82,13 @@ export function ResourcesPage() {
       query.set("offset", String(offset));
       try {
         const next = await api.get<ResourcePage>(`/resources?${query}`);
+        if (mine !== generation.current) return;
         setPage((prev) => (offset > 0 && prev ? { ...next, items: [...prev.items, ...next.items] } : next));
       } catch (err) {
+        if (mine !== generation.current) return;
         setError(describeError(err, "Couldn't load resources."));
       } finally {
-        setLoading(false);
+        if (mine === generation.current) setLoading(false);
       }
     },
     [filterQuery],

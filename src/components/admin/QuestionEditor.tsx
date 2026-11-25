@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useId, useState } from "react";
 import { Loader2 } from "lucide-react";
 import { api, describeError } from "../../lib/apiClient";
 import type { QuestionType } from "../../lib/attemptTypes";
@@ -70,6 +70,10 @@ export function QuestionEditor({ sectionId, question, answerKey, nextDisplayOrde
   const [textAnswers, setTextAnswers] = useState(TEXT_QUESTION_TYPES.includes(question?.type ?? "multiple_choice") ? asList(initialCorrect).join("\n") : "");
   const [aliases, setAliases] = useState((answerKey?.accepted_aliases ?? []).join("\n"));
   const [rationale, setRationale] = useState(answerKey?.rationale ?? "");
+  // A new question created on an earlier try whose answer key didn't save:
+  // retries update it instead of creating a duplicate.
+  const [createdId, setCreatedId] = useState<string | null>(null);
+  const matchIdBase = useId();
 
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
@@ -147,9 +151,11 @@ export function QuestionEditor({ sectionId, question, answerKey, nextDisplayOrde
     setSaving(true);
     try {
       const payload = { type, prompt: prompt.trim(), options, marks: marksValue };
-      const saved = question
-        ? await api.patch<AdminQuestion>(`/admin/questions/${question.id}`, payload)
+      const existingId = question?.id ?? createdId;
+      const saved = existingId
+        ? await api.patch<AdminQuestion>(`/admin/questions/${existingId}`, payload)
         : await api.post<AdminQuestion>(`/admin/sections/${sectionId}/questions`, { ...payload, display_order: nextDisplayOrder });
+      if (!question) setCreatedId(saved.id);
       const aliasList = isText ? lines(aliases) : [];
       await api.put(`/admin/questions/${saved.id}/answer-key`, {
         correct_answers: correct,
@@ -242,9 +248,10 @@ export function QuestionEditor({ sectionId, question, answerKey, nextDisplayOrde
               <legend>Correct matches</legend>
               {promptList.map((item, index) => (
                 <div className="engine-matching-row" key={`${item}-${index}`}>
-                  <span className="engine-matching-prompt">{item}</span>
+                  <span className="engine-matching-prompt" id={`${matchIdBase}-match-${index}`}>{item}</span>
                   <select
                     className="form-input"
+                    aria-labelledby={`${matchIdBase}-match-${index}`}
                     value={matchAnswer[String(index)] ?? ""}
                     onChange={(e) => setMatchAnswer({ ...matchAnswer, [String(index)]: e.target.value })}
                   >

@@ -9,6 +9,9 @@
  *   turns      -> the "I've finished" button
  */
 import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
+// phrases.ts reaches the Supabase client through apiClient; CI has no
+// Supabase env, so stub it (these tests never call the network).
+vi.mock("../supabaseClient", async () => ({ supabase: (await import("../../test/supabaseMock")).supabaseMock }));
 
 // Every model package fails as if its download were blocked. (vi.mock is
 // hoisted above the imports, so each factory has to be inline.)

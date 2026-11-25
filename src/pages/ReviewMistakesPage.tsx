@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { CheckCircle2, Eye, Loader2, RotateCcw, XCircle } from "lucide-react";
 import { Link } from "react-router-dom";
 import { DashboardSidebar } from "../components/dashboard/DashboardSidebar";
@@ -26,17 +26,24 @@ export function ReviewMistakesPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
+  // Each new filter load (offset 0) starts a new generation. A response
+  // from an older one, including a "Show more" for the old filter, is ignored.
+  const generation = useRef(0);
   const load = useCallback(async (which: Filter, offset: number) => {
+    if (offset === 0) generation.current += 1;
+    const mine = generation.current;
     setLoading(true);
     setError("");
     try {
       const query = `limit=${PAGE_SIZE}&offset=${offset}${which === "all" ? "" : `&module=${which}`}`;
       const next = await api.get<MistakesPage>(`/me/mistakes?${query}`);
+      if (mine !== generation.current) return;
       setPage((prev) => (offset > 0 && prev ? { ...next, items: [...prev.items, ...next.items] } : next));
     } catch (err) {
+      if (mine !== generation.current) return;
       setError(describeError(err, "Couldn't load your mistakes."));
     } finally {
-      setLoading(false);
+      if (mine === generation.current) setLoading(false);
     }
   }, []);
 

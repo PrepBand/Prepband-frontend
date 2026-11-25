@@ -246,6 +246,9 @@ export class SttChain {
   private engine: SttEngine | null = null;
   private status: SttStatus = { active: null, loading: null, progress: null, failures: [] };
   private loadingPromise: Promise<void> | null = null;
+  /** Engines still loading, so dispose() can stop them too. */
+  private loadingEngines = new Set<SttEngine>();
+  private disposed = false;
 
   constructor(
     private readonly order: TierId[],
@@ -261,18 +264,21 @@ export class SttChain {
   }
 
   private emit(update: Partial<SttStatus>) {
+    if (this.disposed) return;
     this.status = { ...this.status, ...update };
     this.onStatus(this.status);
   }
 
   private async loadFrom(start: number): Promise<void> {
     for (let i = start; i < this.order.length; i += 1) {
+      if (this.disposed) return;
       const id = this.order[i];
       if (id === "webspeech" && !this.allowCloud) {
         this.emit({ failures: [...this.status.failures, { id, reason: "Not allowed: it would send your audio to another company" }] });
         continue;
       }
       const engine = createSttEngine(id, this.webgpu);
+      this.loadingEngines.add(engine);
       this.emit({ loading: id, progress: 0, note: undefined });
       try {
         await withStallTimeout(
@@ -285,15 +291,23 @@ export class SttChain {
           LOAD_MAX_MS,
           "Loading",
         );
+        this.loadingEngines.delete(engine);
+        // The session ended while this tier loaded: don't install it.
+        if (this.disposed) {
+          engine.dispose();
+          return;
+        }
         this.index = i;
         this.engine = engine;
         this.emit({ active: id, loading: null, progress: null, note: undefined });
         return;
       } catch (error) {
+        this.loadingEngines.delete(engine);
         engine.dispose();
         this.emit({ failures: [...this.status.failures, { id, reason: error instanceof Error ? error.message : String(error) }] });
       }
     }
+    if (this.disposed) return;
     this.engine = null;
     this.emit({ active: null, loading: null, progress: null });
   }
@@ -325,7 +339,7 @@ export class SttChain {
       return { text, model: engine.id };
     } catch (error) {
       this.emit({ failures: [...this.status.failures, { id: engine.id, reason: error instanceof Error ? error.message : String(error) }] });
-      if (this.engine === engine) {
+      if (this.engine === engine && !this.disposed) {
         engine.dispose();
         this.engine = null;
         this.emit({ active: null });
@@ -336,6 +350,9 @@ export class SttChain {
   }
 
   dispose(): void {
+    this.disposed = true;
+    this.loadingEngines.forEach((engine) => engine.dispose());
+    this.loadingEngines.clear();
     this.engine?.dispose();
     this.engine = null;
   }

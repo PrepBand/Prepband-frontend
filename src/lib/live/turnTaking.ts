@@ -116,6 +116,9 @@ export type ListenHandle = {
   result: Promise<ListenResult>;
   /** Tier 4: the student pressed "I've finished". */
   finish: () => void;
+  /** Stops listening right now (the session is closing): no more detector
+   * calls after this returns. */
+  cancel: () => void;
   /** Elapsed/remaining info for the UI. */
   progress: () => { elapsed: number; speaking: boolean; started: boolean };
 };
@@ -148,6 +151,7 @@ export function listenForAnswer(mic: MicCapture, getDetector: () => SpeechDetect
   let speakingNow = false;
   let finishRequested = false;
   let settled = false;
+  let settleNow: () => void = () => {};
 
   mic.startRecording();
 
@@ -168,6 +172,7 @@ export function listenForAnswer(mic: MicCapture, getDetector: () => SpeechDetect
         longPauses,
       });
     };
+    settleNow = () => settle("button");
 
     const timer = setInterval(() => {
       const now = performance.now();
@@ -199,6 +204,7 @@ export function listenForAnswer(mic: MicCapture, getDetector: () => SpeechDetect
     finish: () => {
       finishRequested = true;
     },
+    cancel: () => settleNow(),
     progress: () => ({ elapsed: (performance.now() - startedAt) / 1000, speaking: speakingNow, started: firstSpeechAt != null }),
   };
 }

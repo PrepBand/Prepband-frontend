@@ -1,4 +1,7 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
+// phrases.ts reaches the Supabase client through apiClient; CI has no
+// Supabase env, so stub it (these tests never call the network).
+vi.mock("../supabaseClient", async () => ({ supabase: (await import("../../test/supabaseMock")).supabaseMock }));
 import { defaultPhrases } from "./phrases";
 import { examinerScript, isRepeatRequest, isShortAnswer, type Answer, type ScriptPrompt, type Step } from "./script";
 

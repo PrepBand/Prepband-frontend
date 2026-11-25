@@ -80,6 +80,9 @@ export function SpeakingSession({ sections, attemptId, mode, answers, onAnswer, 
   const chunksRef = useRef<Blob[]>([]);
   const startedAtRef = useRef(0);
   const tickRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  /** Settles once the current recording's onstop has run (and saved its
+   * answer), with that prompt's id. */
+  const stoppedRef = useRef<Promise<string> | null>(null);
 
   const current = prompts[index];
   const prompt: SpeakingPromptPublic | undefined = current?.prompt;
@@ -98,7 +101,6 @@ export function SpeakingSession({ sections, attemptId, mode, answers, onAnswer, 
     },
     [speechAvailable],
   );
-  useEffect(() => () => Object.values(recordings).forEach((r) => URL.revokeObjectURL(r.url)), [recordings]);
 
   // Reset the per-prompt stage whenever the prompt changes (or text mode
   // is switched). Answers and recordings are read from a ref: saving an
@@ -107,6 +109,9 @@ export function SpeakingSession({ sections, attemptId, mode, answers, onAnswer, 
   useEffect(() => {
     latest.current = { answers, recordings };
   });
+  // Only on leaving the page: a replaced recording's URL is revoked when it
+  // is replaced, so earlier prompts' recordings keep playing meanwhile.
+  useEffect(() => () => Object.values(latest.current.recordings).forEach((r) => URL.revokeObjectURL(r.url)), []);
   useEffect(() => {
     if (!prompt) return;
     if (tickRef.current) clearInterval(tickRef.current);
@@ -132,8 +137,11 @@ export function SpeakingSession({ sections, attemptId, mode, answers, onAnswer, 
     }
   };
 
-  const stopRecording = useCallback(() => {
+  /** Stops recording; resolves with the prompt id once its answer has been
+   * handed to onAnswer, or null if nothing was recording. */
+  const stopRecording = useCallback((): Promise<string | null> => {
     if (recorderRef.current?.state === "recording") recorderRef.current.stop();
+    return stoppedRef.current ?? Promise.resolve(null);
   }, []);
 
   const startRecording = useCallback(() => {
@@ -143,6 +151,9 @@ export function SpeakingSession({ sections, attemptId, mode, answers, onAnswer, 
     chunksRef.current = [];
     recorder.ondataavailable = (event) => event.data.size > 0 && chunksRef.current.push(event.data);
     const promptId = prompt.id;
+    let markStopped: (id: string) => void = () => {};
+    const stopped = new Promise<string>((resolve) => (markStopped = resolve));
+    stoppedRef.current = stopped;
     recorder.onstop = () => {
       if (tickRef.current) clearInterval(tickRef.current);
       const seconds = (Date.now() - startedAtRef.current) / 1000;
@@ -154,6 +165,8 @@ export function SpeakingSession({ sections, attemptId, mode, answers, onAnswer, 
       });
       setStage("done");
       onAnswer(promptId, { response_mode: "audio", duration_seconds: Math.round(seconds * 10) / 10, text_response: null, completed: true });
+      if (stoppedRef.current === stopped) stoppedRef.current = null;
+      markStopped(promptId);
     };
     recorderRef.current = recorder;
     startedAtRef.current = Date.now();
@@ -216,7 +229,6 @@ export function SpeakingSession({ sections, attemptId, mode, answers, onAnswer, 
   }
 
   const useText = textMode || micState === "unsupported";
-  const answeredCount = prompts.filter(({ prompt: p }) => answers[p.id]?.completed).length;
 
   // --- Mic gate: privacy notice before anything is requested (FR-SPEAK-03)
   if (!useText && micState !== "ready") {
@@ -424,9 +436,13 @@ export function SpeakingSession({ sections, attemptId, mode, answers, onAnswer, 
               <button
                 type="button"
                 className="button button-primary"
-                onClick={() => {
-                  if (stage === "recording") stopRecording();
-                  const unanswered = prompts.length - answeredCount;
+                onClick={async () => {
+                  // Wait for the final recording's answer to be queued for
+                  // saving, so submit's flush includes it.
+                  const justAnswered = await stopRecording();
+                  const unanswered = prompts.filter(
+                    ({ prompt: p }) => !answers[p.id]?.completed && p.id !== justAnswered,
+                  ).length;
                   if (unanswered > 0 && !window.confirm(`${unanswered} prompt(s) have no answer. Finish anyway?`)) return;
                   onFinish();
                 }}

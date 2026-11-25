@@ -202,7 +202,7 @@ export function LegalPage() {
               <li><strong>Sign-in session</strong>: set by Supabase&rsquo;s sign-in library to keep you logged in.</li>
               <li><strong>Theme</strong>: whether you chose light or dark mode.</li>
               <li><strong>Speech models</strong>: the downloaded examiner models, cached so they don&rsquo;t download again. Clear them in your browser&rsquo;s site settings.</li>
-              <li><strong>Unsent answers</strong>: kept in memory only while you take a test, then sent to the server.</li>
+              <li><strong>Unsent answers</strong>: a copy of answers and essay text the server hasn&rsquo;t confirmed yet is saved on this device (browser local storage), so it isn&rsquo;t lost if the tab closes or the connection drops. Each copy is removed once the server confirms the save or you submit the test; copies from tests that are never reopened are deleted after 30 days. Closing the tab does not remove them. On a shared device, submit your test, or clear this site&rsquo;s data in your browser settings. Recordings are never stored this way.</li>
             </ul>
           </>
         )}

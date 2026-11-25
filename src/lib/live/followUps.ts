@@ -27,12 +27,15 @@ export interface FollowUpChooser {
   readonly id: TierId;
   /** Index into options, or null for "no follow-up". */
   choose(request: FollowUpRequest, fallbackIndex: number | null): Promise<number | null>;
+  /** Frees the model (worker, GPU memory). Safe to call more than once. */
+  dispose(): void;
 }
 
 /** Tier 4: the script's own choice, passed through unchanged. */
 export const scriptChooser: FollowUpChooser = {
   id: "script",
   choose: async (_request, fallbackIndex) => fallbackIndex,
+  dispose: () => {},
 };
 
 type ChatEngine = {
@@ -65,7 +68,13 @@ class WebLlmChooser implements FollowUpChooser {
   constructor(
     readonly id: TierId,
     private readonly engine: ChatEngine,
+    private readonly worker: Worker,
   ) {}
+
+  dispose(): void {
+    void this.engine.unload().catch(() => undefined);
+    this.worker.terminate();
+  }
 
   async choose(request: FollowUpRequest, fallbackIndex: number | null): Promise<number | null> {
     if (!request.transcript || request.options.length === 0) return fallbackIndex;
@@ -114,6 +123,8 @@ const MODEL_FOR: Partial<Record<TierId, string>> = {
 export async function loadFollowUpChooser(
   order: TierId[],
   onStatus: (status: FollowUpStatus) => void,
+  /** Aborting stops a load in progress and frees anything it loaded. */
+  signal?: AbortSignal,
 ): Promise<FollowUpChooser> {
   let status: FollowUpStatus = { active: "script", loading: null, progress: null, failures: [] };
   const emit = (update: Partial<FollowUpStatus>) => {
@@ -121,13 +132,17 @@ export async function loadFollowUpChooser(
     onStatus(status);
   };
   for (const id of order) {
+    if (signal?.aborted) return scriptChooser;
     const modelId = MODEL_FOR[id];
     if (!modelId) break; // reached the script tier
     emit({ loading: id, progress: 0 });
     let worker: Worker | null = null;
+    const stopWorker = () => worker?.terminate();
     try {
       const webllm = await import("@mlc-ai/web-llm");
+      if (signal?.aborted) return scriptChooser;
       worker = new Worker(new URL("./workers/llm.worker.ts", import.meta.url), { type: "module" });
+      signal?.addEventListener("abort", stopWorker, { once: true });
       const engine = (await withTimeout(
         webllm.CreateWebWorkerMLCEngine(worker, modelId, {
           initProgressCallback: (report: { progress: number; text: string }) => emit({ progress: report.progress, note: report.text }),
@@ -135,10 +150,18 @@ export async function loadFollowUpChooser(
         10 * 60 * 1000,
         "Loading",
       )) as unknown as ChatEngine;
+      signal?.removeEventListener("abort", stopWorker);
+      const chooser = new WebLlmChooser(id, engine, worker);
+      if (signal?.aborted) {
+        chooser.dispose();
+        return scriptChooser;
+      }
       emit({ active: id, loading: null, progress: null, note: undefined });
-      return new WebLlmChooser(id, engine);
+      return chooser;
     } catch (error) {
+      signal?.removeEventListener("abort", stopWorker);
       worker?.terminate();
+      if (signal?.aborted) return scriptChooser;
       emit({ failures: [...status.failures, { id, reason: error instanceof Error ? error.message : String(error) }] });
     }
   }
