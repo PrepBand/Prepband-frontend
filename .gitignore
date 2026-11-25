@@ -19,3 +19,8 @@ Thumbs.db
 .vscode/*
 !.vscode/extensions.json
 .idea/
+
+# Local-only preview harness and test coverage output
+src/__preview__/
+preview-harness.html
+coverage/
