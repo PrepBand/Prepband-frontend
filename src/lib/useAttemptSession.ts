@@ -29,9 +29,15 @@ const AUTOSAVE_DEBOUNCE_MS = 600;
 const WRITING_DEBOUNCE_MS = 1500;
 
 /** The latest unconfirmed save for one key. Stays in `pending` until the
- * server confirms it (or rejects it for good), so a flush can wait for
- * saves already in flight and re-send ones that failed. */
-type PendingSave = { timer: ReturnType<typeof setTimeout> | null; inflight: Promise<void> | null; run: () => Promise<void> };
+ * server confirms it (or the attempt stops accepting answers), so a flush
+ * can wait for saves already in flight and re-send ones that failed.
+ * `rejected` holds the server's reason when it refused the save (4xx). */
+type PendingSave = {
+  timer: ReturnType<typeof setTimeout> | null;
+  inflight: Promise<void> | null;
+  rejected: string | null;
+  run: () => Promise<void>;
+};
 
 type Saved = { client_seq?: number | null };
 
@@ -91,24 +97,33 @@ export function useAttemptSession(source: AttemptSource) {
       if (existing?.timer) clearTimeout(existing.timer);
       setSaveStatus("saving");
       let tries = 0;
-      const job: PendingSave = { timer: null, inflight: null, run: () => Promise.resolve() };
+      const job: PendingSave = { timer: null, inflight: null, rejected: null, run: () => Promise.resolve() };
       const isLatest = () => pending.current[key] === job;
       const attemptOnce = async (): Promise<void> => {
         try {
           const saved = await send();
           confirmSaved(attemptId, key, Math.max(changeSeq, saved?.client_seq ?? 0));
+          job.rejected = null;
           if (isLatest()) delete pending.current[key];
           if (Object.keys(pending.current).length === 0) setSaveStatus("saved");
         } catch (err) {
           setSaveStatus("error");
           if (!isLatest()) return; // a newer change replaced this one
-          // A rejected answer (4xx) won't succeed by retrying: drop it. A
-          // network blip or a waking server will: keep it pending and retry,
+          // A network blip or a waking server: keep it pending and retry,
           // since a live-examiner answer has no "next change" to save it.
+          // A rejected answer (4xx) won't succeed by retrying on a timer, but
+          // it stays pending too: submit must not go ahead without it (and
+          // drop its device copy). A newer change, or the next submit (e.g.
+          // after signing in again), sends it again.
           const retryable = !(err instanceof ApiError) || err.status === 0 || err.status >= 500 || err.status === 429 || err.status === 409;
           const finished = err instanceof ApiError && err.status === 409 && /no longer accepting/i.test(err.message);
-          if (!retryable || finished) {
+          if (finished) {
+            // The attempt is closed: nothing can save this; submit reports it.
             delete pending.current[key];
+            return;
+          }
+          if (!retryable) {
+            job.rejected = err instanceof ApiError ? err.message : "The answer was rejected.";
             return;
           }
           if (tries < 4) {
@@ -347,7 +362,12 @@ export function useAttemptSession(source: AttemptSource) {
     try {
       if (!(await flushSaves())) {
         // Submitting now would grade older answers and drop their local copy.
-        setError("Some answers haven't saved yet. Check your connection, then try Submit again.");
+        const rejected = Object.values(pending.current).find((item) => item.rejected)?.rejected;
+        setError(
+          rejected
+            ? `An answer couldn't be saved (${rejected}). Change it or sign in again, then try Submit again.`
+            : "Some answers haven't saved yet. Check your connection, then try Submit again.",
+        );
         return;
       }
       const submitted = await api.post<AttemptOut>(`/attempts/${attempt.id}/submit`);

@@ -180,4 +180,31 @@ describe("useAttemptSession saves", () => {
     expect(pendingChanges("a1")["q:q1"]).toMatchObject({ value: "latest" });
     vi.mocked(api.put).mockReset();
   });
+
+  it("does not submit past a rejected save, and submits once it saves", async () => {
+    const { result } = renderHook(() => useAttemptSession(source));
+    await waitFor(() => expect(result.current.loading).toBe(false));
+    // e.g. the session expired: the save is refused, not lost.
+    vi.mocked(api.put).mockRejectedValue(new ApiError(401, "unauthorized", "Please sign in again"));
+    act(() => result.current.setAnswer("q1", "latest"));
+    await act(async () => {
+      await result.current.submit();
+    });
+    expect(calls.some((c) => c.path.endsWith("/submit"))).toBe(false);
+    expect(result.current.error).toMatch(/couldn't be saved \(Please sign in again\)/);
+    expect(pendingChanges("a1")["q:q1"]).toMatchObject({ value: "latest" });
+
+    // Signed in again: the next submit re-sends the answer, then submits.
+    vi.mocked(api.put).mockImplementation(async (path: string, body: unknown) => {
+      calls.push({ method: "PUT", path, body });
+      return { client_seq: (body as { client_seq: number }).client_seq };
+    });
+    await act(async () => {
+      await result.current.submit();
+    });
+    const lastPut = calls.map((c) => c.method === "PUT" && (c.body as { response?: unknown }).response).filter(Boolean).pop();
+    expect(lastPut).toBe("latest");
+    expect(calls.some((c) => c.path.endsWith("/submit"))).toBe(true);
+    vi.mocked(api.put).mockReset();
+  });
 });
