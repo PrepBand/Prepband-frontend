@@ -128,6 +128,7 @@ export async function loadFollowUpChooser(
 ): Promise<FollowUpChooser> {
   let status: FollowUpStatus = { active: "script", loading: null, progress: null, failures: [] };
   const emit = (update: Partial<FollowUpStatus>) => {
+    if (signal?.aborted) return; // the session has closed
     status = { ...status, ...update };
     onStatus(status);
   };
@@ -137,19 +138,23 @@ export async function loadFollowUpChooser(
     if (!modelId) break; // reached the script tier
     emit({ loading: id, progress: 0 });
     let worker: Worker | null = null;
-    const stopWorker = () => worker?.terminate();
+    // Aborting ends the wait at once (a terminated worker never answers).
+    let onAbort: () => void = () => {};
+    const aborted = new Promise<never>((_, reject) => (onAbort = () => reject(new Error("Cancelled"))));
+    aborted.catch(() => undefined);
+    const stopWorker = () => {
+      worker?.terminate();
+      onAbort();
+    };
     try {
       const webllm = await import("@mlc-ai/web-llm");
       if (signal?.aborted) return scriptChooser;
       worker = new Worker(new URL("./workers/llm.worker.ts", import.meta.url), { type: "module" });
       signal?.addEventListener("abort", stopWorker, { once: true });
-      const engine = (await withTimeout(
-        webllm.CreateWebWorkerMLCEngine(worker, modelId, {
-          initProgressCallback: (report: { progress: number; text: string }) => emit({ progress: report.progress, note: report.text }),
-        }),
-        10 * 60 * 1000,
-        "Loading",
-      )) as unknown as ChatEngine;
+      const loading = webllm.CreateWebWorkerMLCEngine(worker, modelId, {
+        initProgressCallback: (report: { progress: number; text: string }) => emit({ progress: report.progress, note: report.text }),
+      });
+      const engine = (await Promise.race([withTimeout(loading, 10 * 60 * 1000, "Loading"), aborted])) as unknown as ChatEngine;
       signal?.removeEventListener("abort", stopWorker);
       const chooser = new WebLlmChooser(id, engine, worker);
       if (signal?.aborted) {

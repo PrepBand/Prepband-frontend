@@ -170,6 +170,24 @@ export function QuestionEditor({ sectionId, question, answerKey, nextDisplayOrde
     }
   };
 
+  const handleCancel = async () => {
+    if (!question && createdId) {
+      // Created on an earlier try but its answer key never saved: don't
+      // leave a half-made question behind.
+      setSaving(true);
+      try {
+        await api.delete(`/admin/questions/${createdId}`);
+      } catch {
+        // Couldn't remove it: refresh the list so it's visible and fixable.
+        onSaved();
+        return;
+      } finally {
+        setSaving(false);
+      }
+    }
+    onCancel();
+  };
+
   return (
     <form className="admin-question-form" onSubmit={handleSave}>
       <div className="admin-form-grid">
@@ -311,7 +329,7 @@ export function QuestionEditor({ sectionId, question, answerKey, nextDisplayOrde
         <button type="submit" className="button button-primary button-sm" disabled={saving}>
           {saving && <Loader2 size={14} className="spin" aria-hidden="true" />} {question ? "Save question" : "Add question"}
         </button>
-        <button type="button" className="button button-secondary button-sm" onClick={onCancel}>Cancel</button>
+        <button type="button" className="button button-secondary button-sm" onClick={() => void handleCancel()} disabled={saving}>Cancel</button>
       </div>
     </form>
   );

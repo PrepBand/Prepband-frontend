@@ -81,6 +81,15 @@ describe("buildStudyPlan", () => {
     expect(plan.mockAdvice).toMatch(/last full mock/i);
   });
 
+  it("keeps the final-week total equal to the per-skill split", () => {
+    for (const level of ["beginner", "intermediate", "advanced"] as const) {
+      const plan = buildStudyPlan({ examDate: "2026-11-29", preparationLevel: level, targets: {}, progress: progress([], 2), today });
+      expect(plan.phase).toBe("final_week");
+      expect(plan.focus.reduce((sum, f) => sum + f.sessionsPerWeek, 0)).toBe(plan.sessionsPerWeek);
+      expect(plan.headline).toContain(`${plan.sessionsPerWeek} sessions a week`);
+    }
+  });
+
   it("says so when the exam date has passed", () => {
     const plan = buildStudyPlan({ examDate: "2026-10-01", preparationLevel: null, targets: {}, progress: null, today });
     expect(plan.phase).toBe("past");

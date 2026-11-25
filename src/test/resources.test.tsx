@@ -103,6 +103,28 @@ describe("Student resources page", () => {
     openSpy.mockRestore();
   });
 
+  it("ignores a slower response from an older search", async () => {
+    // The unfiltered search answers last; the category search must win.
+    let releaseOld: () => void = () => {};
+    get.mockImplementation(async (path: string) => {
+      if (path === "/resource-categories") return categories;
+      if (path.includes("category=")) return { items: [{ ...card, id: "r2", title: "Filtered guide" }], total: 1, query: null };
+      await new Promise<void>((resolve) => (releaseOld = resolve));
+      return { items: [card], total: 1, query: null };
+    });
+    renderAt(<ResourcesPage />, "/app/resources");
+    await waitFor(() => expect(get).toHaveBeenCalledWith("/resources?limit=24&offset=0"));
+    // Categories load separately; wait for the filter button.
+    get.mockClear();
+    await act(async () => {
+      fireEvent.click(await screen.findByRole("button", { name: /Strategy guides/ }));
+    });
+    expect(await screen.findByRole("heading", { name: "Filtered guide" })).toBeTruthy();
+    await act(async () => releaseOld());
+    expect(screen.queryByRole("heading", { name: "Reading strategy guide" })).toBeNull();
+    expect(screen.getByRole("heading", { name: "Filtered guide" })).toBeTruthy();
+  });
+
   it("says so when nothing matches", async () => {
     get.mockImplementation(async (path: string) => (path === "/resource-categories" ? categories : { items: [], total: 0, query: "zzz" }));
     renderAt(<ResourcesPage />, "/app/resources?q=zzz");

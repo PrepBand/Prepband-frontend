@@ -386,6 +386,7 @@ export function useLiveExaminer({
         } else if (step.kind === "listen") {
           // Let the examiner's voice fade before listening (no echo).
           await new Promise((resolve) => setTimeout(resolve, 250));
+          if (!alive.current) return;
           let listened = null as Awaited<ListenHandle["result"]> | null;
           for (;;) {
             askAgainRequested.current = false;
@@ -403,6 +404,7 @@ export function useLiveExaminer({
               // Practice only: discard this answer and hear the question again.
               await stt.current?.transcribe(listened.audio).catch(() => null);
               await say(step.question, null);
+              if (!alive.current) return;
               continue;
             }
             break;
